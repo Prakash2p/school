@@ -73,6 +73,7 @@ export function LoginForm({ onLogin, onCancel }: LoginFormProps) {
         setError(`Invalid username or password. ${5 - attempts} attempts remaining`)
       }
     } catch (error) {
+      console.error("Login error:", error)
       setError("An error occurred. Please try again")
     } finally {
       setIsSubmitting(false)

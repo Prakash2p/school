@@ -154,46 +154,47 @@ export function AdminDashboard({
       </div>
 
       <Tabs defaultValue="view" className="w-full">
-        <TabsList className="grid w-full grid-cols-7 bg-sky-50/70">
+        {/* Replace the TabsList with responsive design */}
+        <TabsList className="flex flex-wrap overflow-x-auto bg-sky-50/70">
           <TabsTrigger
             value="view"
-            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200"
+            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200 flex-grow sm:flex-grow-0"
           >
-            View Schedule
+            View
           </TabsTrigger>
           <TabsTrigger
             value="add"
-            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200"
+            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200 flex-grow sm:flex-grow-0"
           >
-            Add Schedule
+            Add
           </TabsTrigger>
           <TabsTrigger
             value="manage"
-            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200"
+            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200 flex-grow sm:flex-grow-0"
           >
-            Manage Data
+            Manage
           </TabsTrigger>
           <TabsTrigger
             value="breaks"
-            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200"
+            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200 flex-grow sm:flex-grow-0"
           >
-            Manage Period/Breaks
+            Periods
           </TabsTrigger>
           <TabsTrigger
             value="sessions"
-            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200"
+            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200 flex-grow sm:flex-grow-0"
           >
-            Academic Sessions
+            Sessions
           </TabsTrigger>
           <TabsTrigger
             value="analytics"
-            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200"
+            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200 flex-grow sm:flex-grow-0"
           >
             Analytics
           </TabsTrigger>
           <TabsTrigger
             value="export"
-            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200"
+            className="data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-colors duration-200 flex-grow sm:flex-grow-0"
           >
             Export
           </TabsTrigger>

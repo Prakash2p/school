@@ -10,6 +10,9 @@ import type {
   AcademicSession,
 } from "./types"
 
+// Import our storage manager
+import { storageManager } from "./storage-manager"
+
 // Define the structure of our JSON data store
 interface JsonDataStore {
   teachers: Teacher[]
@@ -187,7 +190,7 @@ const initialData: JsonDataStore = {
 }
 
 // In-memory data store
-let dataStore: JsonDataStore = { ...initialData }
+let dataStore: JsonDataStore = storageManager.loadData<JsonDataStore>("schedule_data", { ...initialData })
 
 // Helper function to save data to a JSON file
 const saveToFile = async (data: JsonDataStore): Promise<void> => {
@@ -220,6 +223,9 @@ const loadFromFile = async (jsonString: string): Promise<JsonDataStore> => {
 }
 
 class JsonStorage {
+  private persistData(): void {
+    storageManager.debouncedSave("schedule_data", dataStore)
+  }
   // Get all data
   async getAllData(): Promise<Omit<JsonDataStore, "admins" | "sessions">> {
     const { admins, sessions, ...rest } = dataStore
@@ -237,12 +243,14 @@ class JsonStorage {
 
   async addTeacher(teacher: Teacher): Promise<void> {
     dataStore.teachers.push(teacher)
+    this.persistData()
   }
 
   async updateTeacher(teacher: Teacher): Promise<void> {
     const index = dataStore.teachers.findIndex((t) => t.id === teacher.id)
     if (index !== -1) {
       dataStore.teachers[index] = teacher
+      this.persistData()
     } else {
       throw new Error("Teacher not found")
     }
@@ -250,6 +258,7 @@ class JsonStorage {
 
   async deleteTeacher(id: string): Promise<void> {
     dataStore.teachers = dataStore.teachers.filter((t) => t.id !== id)
+    this.persistData()
   }
 
   // Subject operations
@@ -263,12 +272,14 @@ class JsonStorage {
 
   async addSubject(subject: Subject): Promise<void> {
     dataStore.subjects.push(subject)
+    this.persistData()
   }
 
   async updateSubject(subject: Subject): Promise<void> {
     const index = dataStore.subjects.findIndex((s) => s.id === subject.id)
     if (index !== -1) {
       dataStore.subjects[index] = subject
+      this.persistData()
     } else {
       throw new Error("Subject not found")
     }
@@ -276,6 +287,7 @@ class JsonStorage {
 
   async deleteSubject(id: string): Promise<void> {
     dataStore.subjects = dataStore.subjects.filter((s) => s.id !== id)
+    this.persistData()
   }
 
   // Period operations
@@ -289,12 +301,14 @@ class JsonStorage {
 
   async addPeriod(period: Period): Promise<void> {
     dataStore.periods.push(period)
+    this.persistData()
   }
 
   async updatePeriod(period: Period): Promise<void> {
     const index = dataStore.periods.findIndex((p) => p.id === period.id)
     if (index !== -1) {
       dataStore.periods[index] = period
+      this.persistData()
     } else {
       throw new Error("Period not found")
     }
@@ -302,6 +316,7 @@ class JsonStorage {
 
   async deletePeriod(id: string): Promise<void> {
     dataStore.periods = dataStore.periods.filter((p) => p.id !== id)
+    this.persistData()
   }
 
   // Class operations
@@ -315,12 +330,14 @@ class JsonStorage {
 
   async addClassGrade(classGrade: ClassGrade): Promise<void> {
     dataStore.classGrades.push(classGrade)
+    this.persistData()
   }
 
   async updateClassGrade(classGrade: ClassGrade): Promise<void> {
     const index = dataStore.classGrades.findIndex((c) => c.id === classGrade.id)
     if (index !== -1) {
       dataStore.classGrades[index] = classGrade
+      this.persistData()
     } else {
       throw new Error("Class not found")
     }
@@ -328,6 +345,7 @@ class JsonStorage {
 
   async deleteClassGrade(id: string): Promise<void> {
     dataStore.classGrades = dataStore.classGrades.filter((c) => c.id !== id)
+    this.persistData()
   }
 
   // Schedule operations
@@ -341,20 +359,24 @@ class JsonStorage {
 
   async addSchedule(schedule: Schedule): Promise<void> {
     dataStore.schedules.push(schedule)
+    this.persistData()
   }
 
   async updateSchedule(schedule: Schedule): Promise<void> {
     const index = dataStore.schedules.findIndex((s) => s.id === schedule.id)
     if (index !== -1) {
       dataStore.schedules[index] = schedule
+      this.persistData()
     } else {
       // If schedule not found, add it as a new one
       dataStore.schedules.push(schedule)
+      this.persistData()
     }
   }
 
   async deleteSchedule(id: string): Promise<void> {
     dataStore.schedules = dataStore.schedules.filter((s) => s.id !== id)
+    this.persistData()
   }
 
   // School days operations
@@ -364,6 +386,7 @@ class JsonStorage {
 
   async updateSchoolDays(schoolDays: SchoolDay[]): Promise<void> {
     dataStore.schoolDays = [...schoolDays]
+    this.persistData()
   }
 
   // Academic session operations
@@ -377,12 +400,14 @@ class JsonStorage {
 
   async addAcademicSession(session: AcademicSession): Promise<void> {
     dataStore.academicSessions.push(session)
+    this.persistData()
   }
 
   async updateAcademicSession(session: AcademicSession): Promise<void> {
     const index = dataStore.academicSessions.findIndex((s) => s.id === session.id)
     if (index !== -1) {
       dataStore.academicSessions[index] = session
+      this.persistData()
     } else {
       throw new Error("Academic session not found")
     }
@@ -390,6 +415,7 @@ class JsonStorage {
 
   async deleteAcademicSession(id: string): Promise<void> {
     dataStore.academicSessions = dataStore.academicSessions.filter((s) => s.id !== id)
+    this.persistData()
   }
 
   async setActiveAcademicSession(id: string): Promise<void> {
@@ -397,6 +423,7 @@ class JsonStorage {
       ...session,
       isActive: session.id === id,
     }))
+    this.persistData()
   }
 
   // Admin operations
@@ -414,12 +441,14 @@ class JsonStorage {
 
   async createAdmin(admin: AdminUser): Promise<void> {
     dataStore.admins.push(admin)
+    this.persistData()
   }
 
   async updateAdmin(admin: AdminUser): Promise<void> {
     const index = dataStore.admins.findIndex((a) => a.id === admin.id)
     if (index !== -1) {
       dataStore.admins[index] = admin
+      this.persistData()
     } else {
       throw new Error("Admin not found")
     }
@@ -427,18 +456,21 @@ class JsonStorage {
 
   async deleteAdmin(id: string): Promise<void> {
     dataStore.admins = dataStore.admins.filter((a) => a.id !== id)
+    this.persistData()
   }
 
   async updateAdminLastLogin(id: string): Promise<void> {
     const admin = dataStore.admins.find((a) => a.id === id)
     if (admin) {
       admin.lastLogin = new Date().toISOString()
+      this.persistData()
     }
   }
 
   // Session operations
   async createSession(session: Session): Promise<void> {
     dataStore.sessions.push(session)
+    this.persistData()
   }
 
   async getSessionByToken(token: string): Promise<Session | null> {
@@ -447,6 +479,7 @@ class JsonStorage {
 
   async deleteSession(id: string): Promise<void> {
     dataStore.sessions = dataStore.sessions.filter((s) => s.id !== id)
+    this.persistData()
   }
 
   // Export and import operations
@@ -457,11 +490,13 @@ class JsonStorage {
   async importFromJsonFile(jsonString: string): Promise<void> {
     const newData = await loadFromFile(jsonString)
     dataStore = newData
+    this.persistData()
   }
 
   // Reset to initial data
   async resetToInitialData(): Promise<void> {
     dataStore = { ...initialData }
+    this.persistData()
   }
 }
 

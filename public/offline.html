@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - SARC Scheduler</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f3f4f6;
+    }
+    header {
+      background: linear-gradient(to right, #0284c7, #0ea5e9);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .offline-card {
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      max-width: 400px;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 0;
+      color: #0ea5e9;
+    }
+    p {
+      color: #4b5563;
+      line-height: 1.5;
+    }
+    .retry-button {
+      background-color: #0ea5e9;
+      color: white;
+      border: none;
+      border-radius: 0.25rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .retry-button:hover {
+      background-color: #0284c7;
+    }
+    footer {
+      background-color: #e5e7eb;
+      padding: 1rem;
+      text-align: center;
+      color: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SARC Scheduler</h1>
+  </header>
+  <main>
+    <div class="offline-card">
+      <h2>You're currently offline</h2>
+      <p>The SARC Scheduler requires an internet connection. Please check your connection and try again.</p>
+      <p>Any changes you've made will be automatically synced when you're back online.</p>
+      <button class="retry-button" onclick="window.location.reload()">Retry Connection</button>
+    </div>
+  </main>
+  <footer>
+    © SARC Scheduler
+  </footer>
+  <script>
+    // Check if we're back online
+    window.addEventListener('online', () => {
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>

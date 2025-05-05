@@ -61,10 +61,11 @@
     "@emotion/is-prop-valid": "latest",
     "framer-motion": "latest",
     "lowdb": "latest",
-    "bcryptjs": "latest",
     "html2canvas": "latest",
     "jspdf": "latest",
-    "xlsx": "latest"
+    "xlsx": "latest",
+    "lodash": "latest",
+    "bcryptjs": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

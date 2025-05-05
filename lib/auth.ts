@@ -3,11 +3,11 @@ import type { AdminUser, Session } from "./types"
 import { generateUniqueId } from "./data"
 import * as bcrypt from "bcryptjs"
 
+// Import storage manager as a named import
+import { storageManager } from "./storage-manager"
+
 const SALT_ROUNDS = 12
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 days
-
-// In-memory token storage for the current session
-let currentToken: string | null = null
 
 export class AuthService {
   private static instance: AuthService
@@ -73,65 +73,92 @@ export class AuthService {
   }
 
   async login(username: string, password: string): Promise<{ user: AdminUser; token: string } | null> {
-    const user = await db.getAdminByUsername(username)
-    if (!user) return null
+    try {
+      const user = await db.getAdminByUsername(username)
+      if (!user) return null
 
-    // For demo purposes, allow direct password comparison
-    // In production, use proper password hashing
-    const isValid = user.passwordHash === password
-    if (!isValid) return null
+      // For demo purposes, allow direct password comparison
+      // In production, use proper password hashing
+      const isValid = user.passwordHash === password
+      if (!isValid) return null
 
-    const session = await this.createSession(user.id)
-    await db.updateAdminLastLogin(user.id)
+      const session = await this.createSession(user.id)
+      await db.updateAdminLastLogin(user.id)
 
-    // Store the token in memory for the current session
-    currentToken = session.token
+      // Save the token using the storage manager
+      this.saveToken(session.token)
 
-    return {
-      user: {
-        ...user,
-        passwordHash: "[REDACTED]", // Don't send password hash to client
-      },
-      token: session.token,
+      return {
+        user: {
+          ...user,
+          passwordHash: "[REDACTED]", // Don't send password hash to client
+        },
+        token: session.token,
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      return null
     }
   }
 
-  // Save token to memory
+  // Update the saveToken method to use regular saveData instead of debouncedSave
   async saveToken(token: string): Promise<void> {
-    currentToken = token
+    try {
+      storageManager.saveData("auth_token", token)
+    } catch (error) {
+      console.error("Error saving token:", error)
+    }
   }
 
-  // Get token from memory
+  // Update the getStoredToken method:
   getStoredToken(): string | null {
-    return currentToken
+    try {
+      return storageManager.loadData<string | null>("auth_token", null)
+    } catch (error) {
+      console.error("Error getting stored token:", error)
+      return null
+    }
   }
 
-  // Clear token from memory
+  // Update the clearStoredToken method:
   clearStoredToken(): void {
-    currentToken = null
+    try {
+      storageManager.clearData("auth_token")
+    } catch (error) {
+      console.error("Error clearing token:", error)
+    }
   }
 
   async logout(token: string): Promise<void> {
-    const session = await db.getSessionByToken(token)
-    if (session) {
-      await db.deleteSession(session.id)
+    try {
+      const session = await db.getSessionByToken(token)
+      if (session) {
+        await db.deleteSession(session.id)
+      }
+      this.clearStoredToken()
+    } catch (error) {
+      console.error("Logout error:", error)
     }
-    this.clearStoredToken()
   }
 
   async validateToken(token: string): Promise<AdminUser | null> {
-    const isValid = await this.validateSession(token)
-    if (!isValid) return null
+    try {
+      const isValid = await this.validateSession(token)
+      if (!isValid) return null
 
-    const session = await db.getSessionByToken(token)
-    if (!session) return null
+      const session = await db.getSessionByToken(token)
+      if (!session) return null
 
-    const user = await db.getAdminById(session.userId)
-    if (!user) return null
+      const user = await db.getAdminById(session.userId)
+      if (!user) return null
 
-    return {
-      ...user,
-      passwordHash: "[REDACTED]", // Don't send password hash to client
+      return {
+        ...user,
+        passwordHash: "[REDACTED]", // Don't send password hash to client
+      }
+    } catch (error) {
+      console.error("Token validation error:", error)
+      return null
     }
   }
 
@@ -141,22 +168,26 @@ export class AuthService {
       return
     }
 
-    // Check if any admin exists
-    const admins = await db.getAllAdmins()
+    try {
+      // Check if any admin exists
+      const admins = await db.getAllAdmins()
 
-    if (admins.length === 0) {
-      // Create default admin if none exists
-      const defaultAdmin: AdminUser = {
-        id: generateUniqueId(),
-        username: "admin",
-        passwordHash: "admin123", // In production, use proper hashing
-        role: "SuperAdmin",
-        name: "System Administrator",
-        email: "admin@example.com",
-        createdAt: new Date().toISOString(),
+      if (admins.length === 0) {
+        // Create default admin if none exists
+        const defaultAdmin: AdminUser = {
+          id: generateUniqueId(),
+          username: "admin",
+          passwordHash: "admin123", // In production, use proper hashing
+          role: "SuperAdmin",
+          name: "System Administrator",
+          email: "admin@example.com",
+          createdAt: new Date().toISOString(),
+        }
+
+        await db.createAdmin(defaultAdmin)
       }
-
-      await db.createAdmin(defaultAdmin)
+    } catch (error) {
+      console.error("Error ensuring default admin:", error)
     }
   }
 }

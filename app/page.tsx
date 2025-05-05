@@ -26,6 +26,11 @@ import type {
   AcademicSession,
 } from "@/lib/types"
 import { jsonStorage } from "@/lib/json-storage"
+// Update the import statement for storageManager
+import { storageManager } from "@/lib/storage-manager"
+
+// Import at the top
+import { registerServiceWorker } from "@/lib/service-worker"
 
 export default function Home() {
   const { toast } = useToast()
@@ -48,6 +53,26 @@ export default function Home() {
   const [academicSessions, setAcademicSessions] = useState<AcademicSession[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [dataVersion, setDataVersion] = useState(0) // Used to trigger re-renders when data changes
+
+  // Add these state variables
+  const [hasStorageError, setHasStorageError] = useState(false)
+  const [isFirstLoad, setIsFirstLoad] = useState(true)
+
+  // Add online/offline status handling
+  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true)
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("offline", handleOffline)
+
+    return () => {
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+    }
+  }, [])
 
   // Get active days from schoolDays
   const activeDays = useMemo(() => schoolDays.filter((day) => day.active).map((day) => day.name), [schoolDays])
@@ -91,6 +116,18 @@ export default function Home() {
           return
         }
 
+        // Check storage availability
+        const storageAvailable = storageManager.isLocalStorageAvailable()
+        if (!storageAvailable) {
+          setHasStorageError(true)
+          console.error("LocalStorage is not available")
+          toast({
+            title: "Storage Error",
+            description: "Unable to access browser storage. Some features may not work properly.",
+            variant: "destructive",
+          })
+        }
+
         // Ensure default admin exists
         await authService.ensureDefaultAdmin()
 
@@ -131,6 +168,9 @@ export default function Home() {
 
         // Now that we have school days, set the selected day
         setSelectedDay(getCurrentDay())
+
+        // Set first load flag to false after first successful load
+        setIsFirstLoad(false)
       } catch (error) {
         console.error("Failed to initialize app:", error)
         toast({
@@ -145,6 +185,13 @@ export default function Home() {
 
     initializeApp()
   }, [toast, getCurrentDay])
+
+  // Add a useEffect to register the service worker
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      registerServiceWorker()
+    }
+  }, [])
 
   // Add this effect to check for stored authentication on page load
   useEffect(() => {
@@ -941,6 +988,15 @@ export default function Home() {
         onManageAccount={() => setShowAccountManager(true)}
         availableDays={activeDays}
       />
+
+      {/* Add an offline warning banner (place it right after the header in the JSX) */}
+      {!isOnline && (
+        <div className="bg-amber-50 border-b border-amber-200 p-2 text-center text-amber-800">
+          <p className="text-sm font-medium">
+            You're currently offline. Changes will be saved and synchronized when you're back online.
+          </p>
+        </div>
+      )}
 
       <main className="flex-1 container mx-auto px-4 py-6">
         {isLoggedIn && userRole === "Admin" ? (
